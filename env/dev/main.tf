@@ -8,3 +8,10 @@ module "virtual_network" {
   source     = "../../modules/azurerm_virtual_network"
   sdn_vnets  = var.sdn_vnets
 }
+
+module "subnets" {
+  depends_on  = [module.virtual_network]
+  source      = "../../modules/azurerm_subnet"
+  sdn_subnets = var.sdn_subnets
+
+}
