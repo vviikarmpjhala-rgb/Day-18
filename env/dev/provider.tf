@@ -7,11 +7,11 @@ terraform {
     }
   }
   backend "azurerm" {
-    resource_group_name = "sdn_rg"
+    resource_group_name  = "sdn_rg"
     storage_account_name = "sdnstoragerg"
-    container_name = "sdnstoragecon"
-    key = "dev.terraform.tfstate"
-    
+    container_name       = "sdnstoragecon"
+    key                  = "dev.terraform.tfstate"
+
   }
 }
 provider "azurerm" {
