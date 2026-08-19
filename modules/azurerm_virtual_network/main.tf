@@ -1,4 +1,4 @@
-resource "azurerm_virual_network" "sdn_vnets" {
+resource "azurerm_virtual_network" "sdn_vnets" {
   for_each            = var.sdn_vnets
   name                = each.value.name
   location            = each.value.location
