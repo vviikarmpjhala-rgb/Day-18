@@ -1,0 +1,150 @@
+name: Terraform
+
+on:
+  push:
+    branches:
+      - "**"
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: env/dev
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check Azure Variables
+        run: |
+          if [ -z "${{ vars.AZURE_CLIENT_ID }}" ]; then
+            echo "AZURE_CLIENT_ID is EMPTY"
+          else
+            echo "AZURE_CLIENT_ID is SET"
+          fi
+
+          if [ -z "${{ vars.AZURE_CLIENT_SECRET }}" ]; then
+            echo "AZURE_CLIENT_SECRET is EMPTY"
+          else
+            echo "AZURE_CLIENT_SECRET is SET"
+          fi
+
+          if [ -z "${{ vars.AZURE_TENANT_ID }}" ]; then
+            echo "AZURE_TENANT_ID is EMPTY"
+          else
+            echo "AZURE_TENANT_ID is SET"
+          fi
+
+          if [ -z "${{ vars.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "AZURE_SUBSCRIPTION_ID is EMPTY"
+          else
+            echo "AZURE_SUBSCRIPTION_ID is SET"
+          fi
+
+      - name: Azure Login
+        run: |
+          az login \
+            --service-principal \
+            --username "${{ vars.AZURE_CLIENT_ID }}" \
+            --password "${{ vars.AZURE_CLIENT_SECRET }}" \
+            --tenant "${{ vars.AZURE_TENANT_ID }}"
+
+      - name: Set Azure Subscription
+        run: |
+          az account set \
+            --subscription "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+
+      - name: Check Azure Login
+        run: az account show
+
+      - name: Terraform Format
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Install TFLint
+        uses: terraform-linters/setup-tflint@v5
+        with:
+          tflint_version: latest
+
+      - name: TFLint Init
+        run: tflint --init
+
+      - name: TFLint
+        run: tflint
+
+      - name: tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: env/dev
+
+      - name: Terraform Plan
+        run: terraform plan
+
+
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+
+    needs: terraform-plan
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    defaults:
+      run:
+        working-directory: env/dev
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Azure Login
+        run: |
+          az login \
+            --service-principal \
+            --username "${{ vars.AZURE_CLIENT_ID }}" \
+            --password "${{ vars.AZURE_CLIENT_SECRET }}" \
+            --tenant "${{ vars.AZURE_TENANT_ID }}"
+
+      - name: Set Azure Subscription
+        run: |
+          az account set \
+            --subscription "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+
+      - name: Check Azure Login
+        run: az account show
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
