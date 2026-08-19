@@ -3,4 +3,8 @@ sdn_rgs = {
         name= "sdn_rg1"
         location="centralindia"
     }
+       sdn_rg2 ={
+        name= "sdn_rg2"
+        location="centralindia"
+    }
 }
