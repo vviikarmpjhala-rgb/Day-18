@@ -99,7 +99,9 @@ jobs:
         run: tflint
 
       - name: tfsec
-        run: tfsec .
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: env/dev
 
       - name: Terraform Plan
         run: terraform plan
