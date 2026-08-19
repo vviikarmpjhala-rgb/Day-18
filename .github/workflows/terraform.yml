@@ -30,7 +30,6 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Temporary check - values are NOT printed
       - name: Check Azure Variables
         run: |
           if [ -z "${{ vars.AZURE_CLIENT_ID }}" ]; then
