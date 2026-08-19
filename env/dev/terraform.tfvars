@@ -8,3 +8,12 @@ sdn_rgs = {
     location = "centralindia"
   }
 }
+
+sdn_vnets = {
+  sdn_vnet1 = {
+    name                = "infra_vnet1"
+    location            = "centralindia"
+    resource_group_name = "sdn_rg1"
+    address_space       = ["10.0.0.0/16"]
+  }
+}
