@@ -30,6 +30,33 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # Temporary check - values are NOT printed
+      - name: Check Azure Variables
+        run: |
+          if [ -z "${{ vars.AZURE_CLIENT_ID }}" ]; then
+            echo "AZURE_CLIENT_ID is EMPTY"
+          else
+            echo "AZURE_CLIENT_ID is SET"
+          fi
+
+          if [ -z "${{ vars.AZURE_CLIENT_SECRET }}" ]; then
+            echo "AZURE_CLIENT_SECRET is EMPTY"
+          else
+            echo "AZURE_CLIENT_SECRET is SET"
+          fi
+
+          if [ -z "${{ vars.AZURE_TENANT_ID }}" ]; then
+            echo "AZURE_TENANT_ID is EMPTY"
+          else
+            echo "AZURE_TENANT_ID is SET"
+          fi
+
+          if [ -z "${{ vars.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "AZURE_SUBSCRIPTION_ID is EMPTY"
+          else
+            echo "AZURE_SUBSCRIPTION_ID is SET"
+          fi
+
       - name: Azure Login
         run: |
           az login \
