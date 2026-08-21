@@ -14,13 +14,17 @@ permissions:
 
 jobs:
 
+  # ==========================================================
+  # TERRAFORM PLAN
+  # ==========================================================
   terraform-plan:
     name: Terraform Plan
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     defaults:
       run:
         working-directory: env/dev
+        shell: powershell
 
     steps:
 
@@ -30,88 +34,126 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # --------------------------------------------------------
+      # Check Azure Variables
+      # --------------------------------------------------------
       - name: Check Azure Variables
+        shell: powershell
         run: |
-          if [ -z "${{ vars.AZURE_CLIENT_ID }}" ]; then
-            echo "AZURE_CLIENT_ID is EMPTY"
-          else
-            echo "AZURE_CLIENT_ID is SET"
-          fi
+          if ([string]::IsNullOrEmpty("${{ vars.AZURE_CLIENT_ID }}")) {
+            Write-Host "AZURE_CLIENT_ID is EMPTY"
+          }
+          else {
+            Write-Host "AZURE_CLIENT_ID is SET"
+          }
 
-          if [ -z "${{ vars.AZURE_CLIENT_SECRET }}" ]; then
-            echo "AZURE_CLIENT_SECRET is EMPTY"
-          else
-            echo "AZURE_CLIENT_SECRET is SET"
-          fi
+          if ([string]::IsNullOrEmpty("${{ vars.AZURE_CLIENT_SECRET }}")) {
+            Write-Host "AZURE_CLIENT_SECRET is EMPTY"
+          }
+          else {
+            Write-Host "AZURE_CLIENT_SECRET is SET"
+          }
 
-          if [ -z "${{ vars.AZURE_TENANT_ID }}" ]; then
-            echo "AZURE_TENANT_ID is EMPTY"
-          else
-            echo "AZURE_TENANT_ID is SET"
-          fi
+          if ([string]::IsNullOrEmpty("${{ vars.AZURE_TENANT_ID }}")) {
+            Write-Host "AZURE_TENANT_ID is EMPTY"
+          }
+          else {
+            Write-Host "AZURE_TENANT_ID is SET"
+          }
 
-          if [ -z "${{ vars.AZURE_SUBSCRIPTION_ID }}" ]; then
-            echo "AZURE_SUBSCRIPTION_ID is EMPTY"
-          else
-            echo "AZURE_SUBSCRIPTION_ID is SET"
-          fi
+          if ([string]::IsNullOrEmpty("${{ vars.AZURE_SUBSCRIPTION_ID }}")) {
+            Write-Host "AZURE_SUBSCRIPTION_ID is EMPTY"
+          }
+          else {
+            Write-Host "AZURE_SUBSCRIPTION_ID is SET"
+          }
 
+      # --------------------------------------------------------
+      # Azure Login
+      # --------------------------------------------------------
       - name: Azure Login
+        shell: powershell
         run: |
-          az login \
-            --service-principal \
-            --username "${{ vars.AZURE_CLIENT_ID }}" \
-            --password "${{ vars.AZURE_CLIENT_SECRET }}" \
+          az login `
+            --service-principal `
+            --username "${{ vars.AZURE_CLIENT_ID }}" `
+            --password "${{ vars.AZURE_CLIENT_SECRET }}" `
             --tenant "${{ vars.AZURE_TENANT_ID }}"
 
       - name: Set Azure Subscription
+        shell: powershell
         run: |
-          az account set \
+          az account set `
             --subscription "${{ vars.AZURE_SUBSCRIPTION_ID }}"
 
       - name: Check Azure Login
-        run: az account show
+        shell: powershell
+        run: |
+          az account show
 
+      # --------------------------------------------------------
+      # Terraform Checks
+      # --------------------------------------------------------
       - name: Terraform Format
-        run: terraform fmt -check -recursive
+        run: |
+          terraform fmt -check -recursive
 
       - name: Terraform Init
-        run: terraform init
+        run: |
+          terraform init
 
       - name: Terraform Validate
-        run: terraform validate
+        run: |
+          terraform validate
 
+      # --------------------------------------------------------
+      # TFLint
+      # --------------------------------------------------------
       - name: Install TFLint
         uses: terraform-linters/setup-tflint@v5
         with:
           tflint_version: latest
 
       - name: TFLint Init
-        run: tflint --init
+        run: |
+          tflint --init
 
       - name: TFLint
-        run: tflint
+        run: |
+          tflint
 
+      # --------------------------------------------------------
+      # tfsec
+      # --------------------------------------------------------
       - name: tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: env/dev
 
+      # --------------------------------------------------------
+      # Terraform Plan
+      # --------------------------------------------------------
       - name: Terraform Plan
-        run: terraform plan
+        run: |
+          terraform plan
 
 
+  # ==========================================================
+  # TERRAFORM APPLY
+  # ==========================================================
   terraform-apply:
     name: Terraform Apply
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     needs: terraform-plan
 
+    # Apply ONLY after code is pushed/merged into main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     defaults:
       run:
         working-directory: env/dev
+        shell: powershell
 
     steps:
 
@@ -121,30 +163,44 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # --------------------------------------------------------
+      # Azure Login
+      # --------------------------------------------------------
       - name: Azure Login
+        shell: powershell
         run: |
-          az login \
-            --service-principal \
-            --username "${{ vars.AZURE_CLIENT_ID }}" \
-            --password "${{ vars.AZURE_CLIENT_SECRET }}" \
+          az login `
+            --service-principal `
+            --username "${{ vars.AZURE_CLIENT_ID }}" `
+            --password "${{ vars.AZURE_CLIENT_SECRET }}" `
             --tenant "${{ vars.AZURE_TENANT_ID }}"
 
       - name: Set Azure Subscription
+        shell: powershell
         run: |
-          az account set \
+          az account set `
             --subscription "${{ vars.AZURE_SUBSCRIPTION_ID }}"
 
       - name: Check Azure Login
-        run: az account show
+        shell: powershell
+        run: |
+          az account show
 
+      # --------------------------------------------------------
+      # Terraform
+      # --------------------------------------------------------
       - name: Terraform Init
-        run: terraform init
+        run: |
+          terraform init
 
       - name: Terraform Validate
-        run: terraform validate
+        run: |
+          terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: |
+          terraform plan -out=tfplan
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: |
+          terraform apply -auto-approve tfplan

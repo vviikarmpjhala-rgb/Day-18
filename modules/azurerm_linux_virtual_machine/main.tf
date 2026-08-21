@@ -28,6 +28,7 @@ resource "azurerm_network_interface" "sdn_nics" {
 resource "azurerm_linux_virtual_machine" "sdn_linux_vm" {
   for_each = var.sdn_vm_nics
   name                = each.value.vm_name
+  computer_name       = each.value.computer_name
   resource_group_name = each.value.rg_name
   location            = each.value.location
   size                = each.value.vm_size
@@ -36,6 +37,7 @@ resource "azurerm_linux_virtual_machine" "sdn_linux_vm" {
   network_interface_ids = [
     azurerm_network_interface.sdn_nics[each.key].id,
   ]
+  disable_password_authentication = false
 
 
 
