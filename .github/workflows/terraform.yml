@@ -83,7 +83,7 @@ jobs:
           az login `
             --service-principal `
             --username "${{ vars.AZURE_CLIENT_ID }}" `
-            --password "${{ secrets.AZURE_CLIENT_SECRET }}" `
+            --password "${{ vars.AZURE_CLIENT_SECRET }}" `
             --tenant "${{ vars.AZURE_TENANT_ID }}"
 
       # --------------------------------------------------------
@@ -221,7 +221,7 @@ jobs:
           az login `
             --service-principal `
             --username "${{ vars.AZURE_CLIENT_ID }}" `
-            --password "${{ secrets.AZURE_CLIENT_SECRET }}" `
+            --password "${{ vars.AZURE_CLIENT_SECRET }}" `
             --tenant "${{ vars.AZURE_TENANT_ID }}"
 
       # --------------------------------------------------------
