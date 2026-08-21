@@ -53,7 +53,7 @@ jobs:
             Write-Host "AZURE_CLIENT_ID is SET"
           }
 
-          if ([string]::IsNullOrEmpty("${{ secrets.AZURE_CLIENT_SECRET }}")) {
+          if ([string]::IsNullOrEmpty("${{ vars.AZURE_CLIENT_SECRET }}")) {
             Write-Host "AZURE_CLIENT_SECRET is EMPTY"
           }
           else {
