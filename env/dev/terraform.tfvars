@@ -34,7 +34,7 @@ sdn_pips = {
     allocation_method   = "Static"
   }
   sdn_pip2 = {
-    name                = "backend_vm2_pip2"
+    name                = "frontend_vm2_pip2"
     resource_group_name = "sdn_rg1"
     location            = "centralindia"
     allocation_method   = "Static"
@@ -54,27 +54,28 @@ sdn_nsgs = {
 }
 sdn_vm_nics = {
   sdn_vm_nic1 = {
-    nic_name             = "frontend_vm1_nic"
-    location             = "centralindia"
-    rg_name              = "sdn_rg1"
     data_subnet_name     = "frontend"
     virtual_network_name = "infra_vnet1"
+    rg_name              = "sdn_rg1"
+    pip_name             = "frontend_vm1_pip1"
+    nic_name             = "frontend_vm1_nic"
+    location             = "centralindia"
     vm_name              = "frontend_vm1"
     vm_size              = "Standard_B2s"
     admin_username       = "devopsadmin"
     admin_password       = "P@ssw0rd!"
-    pip_name             = "frontend_vm1_pip1"
+
   }
   sdn_vm_nic2 = {
-    nic_name             = "backend_vm2_nic"
-    location             = "centralindia"
-    rg_name              = "sdn_rg1"
-    data_subnet_name     = "backend"
+    data_subnet_name     = "frontend"
     virtual_network_name = "infra_vnet1"
-    vm_name              = "backend_vm2"
-    vm_size              = "Standard_B1s"
+    rg_name              = "sdn_rg1"
+    pip_name             = "frontend_vm2_pip2"
+    nic_name             = "frontend_vm2_nic"
+    location             = "centralindia"
+    vm_name              = "frontend_vm1"
+    vm_size              = "Standard_B2s"
     admin_username       = "devopsadmin"
     admin_password       = "P@ssw0rd!"
-    pip_name             = "backend_vm2_pip2"
   }
 }

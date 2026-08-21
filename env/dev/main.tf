@@ -18,7 +18,7 @@ module "subnets" {
 
 module "sdn_pips" {
   depends_on = [module.resource_group]
-  source     = "../../modules/azurem_public_ip"
+  source     = "../../modules/azurerm_public_ip"
   sdn_pips   = var.sdn_pips
 
 }
@@ -30,7 +30,7 @@ module "sdn_nsgs" {
 }
 
 module "sdn_vm_nics" {
-  depends_on  = [module.subnets, module.resource_group]
+  depends_on  = [module.subnets, module.sdn_pips]
   source      = "../../modules/azurerm_linux_virtual_machine"
   sdn_vm_nics = var.sdn_vm_nics
 }
