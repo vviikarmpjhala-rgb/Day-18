@@ -19,7 +19,7 @@ jobs:
   # ==========================================================
   terraform-plan:
     name: Terraform Plan
-    runs-on: self-hosted
+    runs-on: [self-hosted, Windows, X64]
 
     defaults:
       run:
@@ -28,9 +28,15 @@ jobs:
 
     steps:
 
+      # --------------------------------------------------------
+      # Checkout
+      # --------------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # --------------------------------------------------------
+      # Setup Terraform
+      # --------------------------------------------------------
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
@@ -123,6 +129,7 @@ jobs:
         shell: powershell
         run: |
           tflint
+
       # --------------------------------------------------------
       # tfsec
       # --------------------------------------------------------
@@ -144,11 +151,11 @@ jobs:
   # ==========================================================
   terraform-apply:
     name: Terraform Apply
-    runs-on: self-hosted
+    runs-on: [self-hosted, Windows, X64]
 
     needs: terraform-plan
 
-    # Apply ONLY after code is pushed/merged into main
+    # Apply ONLY when code is pushed/merged into main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     defaults:
@@ -158,9 +165,15 @@ jobs:
 
     steps:
 
+      # --------------------------------------------------------
+      # Checkout
+      # --------------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # --------------------------------------------------------
+      # Setup Terraform
+      # --------------------------------------------------------
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
