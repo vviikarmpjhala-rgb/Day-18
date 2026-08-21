@@ -33,6 +33,28 @@ jobs:
       # --------------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
+        
+      - name: Debug Workspace
+        working-directory: .
+        shell: powershell
+        run: |
+          Write-Host "=== Current Directory ==="
+          Get-Location
+
+          Write-Host "=== GitHub Workspace ==="
+          Write-Host "$env:GITHUB_WORKSPACE"
+
+          Write-Host "=== Root Contents ==="
+          Get-ChildItem
+
+          Write-Host "=== env/dev Check ==="
+          if (Test-Path ".\env\dev") {
+            Write-Host "SUCCESS: env/dev EXISTS"
+            Get-ChildItem ".\env\dev"
+          }
+          else {
+            Write-Host "ERROR: env/dev DOES NOT EXIST"
+          }
 
       # --------------------------------------------------------
       # Setup Terraform
