@@ -195,7 +195,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: Environments/dev
+        working-directory: env/dev
         shell: powershell
 
     steps:
