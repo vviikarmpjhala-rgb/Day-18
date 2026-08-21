@@ -23,7 +23,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: env/dev
+        working-directory: Environments/dev
         shell: powershell
 
     steps:
@@ -53,7 +53,7 @@ jobs:
             Write-Host "AZURE_CLIENT_ID is SET"
           }
 
-          if ([string]::IsNullOrEmpty("${{ vars.AZURE_CLIENT_SECRET }}")) {
+          if ([string]::IsNullOrEmpty("${{ secrets.AZURE_CLIENT_SECRET }}")) {
             Write-Host "AZURE_CLIENT_SECRET is EMPTY"
           }
           else {
@@ -83,31 +83,43 @@ jobs:
           az login `
             --service-principal `
             --username "${{ vars.AZURE_CLIENT_ID }}" `
-            --password "${{ vars.AZURE_CLIENT_SECRET }}" `
+            --password "${{ secrets.AZURE_CLIENT_SECRET }}" `
             --tenant "${{ vars.AZURE_TENANT_ID }}"
 
+      # --------------------------------------------------------
+      # Set Azure Subscription
+      # --------------------------------------------------------
       - name: Set Azure Subscription
         shell: powershell
         run: |
           az account set `
             --subscription "${{ vars.AZURE_SUBSCRIPTION_ID }}"
 
+      # --------------------------------------------------------
+      # Check Azure Login
+      # --------------------------------------------------------
       - name: Check Azure Login
         shell: powershell
         run: |
           az account show
 
       # --------------------------------------------------------
-      # Terraform Checks
+      # Terraform Format
       # --------------------------------------------------------
       - name: Terraform Format
         run: |
           terraform fmt -check -recursive
 
+      # --------------------------------------------------------
+      # Terraform Init
+      # --------------------------------------------------------
       - name: Terraform Init
         run: |
           terraform init
 
+      # --------------------------------------------------------
+      # Terraform Validate
+      # --------------------------------------------------------
       - name: Terraform Validate
         run: |
           terraform validate
@@ -131,12 +143,35 @@ jobs:
           tflint
 
       # --------------------------------------------------------
-      # tfsec
+      # Install tfsec - Windows
       # --------------------------------------------------------
-      - name: tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
-        with:
-          working_directory: env/dev
+      - name: Install tfsec
+        shell: powershell
+        run: |
+          $tfsecPath = "$env:RUNNER_TEMP\tfsec.exe"
+
+          if (Test-Path $tfsecPath) {
+            Write-Host "tfsec already exists."
+          }
+          else {
+            Write-Host "Downloading tfsec..."
+
+            Invoke-WebRequest `
+              -Uri "https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-windows-amd64.exe" `
+              -OutFile $tfsecPath
+          }
+
+          Unblock-File -Path $tfsecPath
+
+          & $tfsecPath --version
+
+      # --------------------------------------------------------
+      # tfsec Security Scan
+      # --------------------------------------------------------
+      - name: tfsec Security Scan
+        shell: powershell
+        run: |
+          & "$env:RUNNER_TEMP\tfsec.exe" .
 
       # --------------------------------------------------------
       # Terraform Plan
@@ -155,12 +190,12 @@ jobs:
 
     needs: terraform-plan
 
-    # Apply ONLY when code is pushed/merged into main
+    # Apply ONLY when code is pushed to main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     defaults:
       run:
-        working-directory: env/dev
+        working-directory: Environments/dev
         shell: powershell
 
     steps:
@@ -186,35 +221,50 @@ jobs:
           az login `
             --service-principal `
             --username "${{ vars.AZURE_CLIENT_ID }}" `
-            --password "${{ vars.AZURE_CLIENT_SECRET }}" `
+            --password "${{ secrets.AZURE_CLIENT_SECRET }}" `
             --tenant "${{ vars.AZURE_TENANT_ID }}"
 
+      # --------------------------------------------------------
+      # Set Azure Subscription
+      # --------------------------------------------------------
       - name: Set Azure Subscription
         shell: powershell
         run: |
           az account set `
             --subscription "${{ vars.AZURE_SUBSCRIPTION_ID }}"
 
+      # --------------------------------------------------------
+      # Check Azure Login
+      # --------------------------------------------------------
       - name: Check Azure Login
         shell: powershell
         run: |
           az account show
 
       # --------------------------------------------------------
-      # Terraform
+      # Terraform Init
       # --------------------------------------------------------
       - name: Terraform Init
         run: |
           terraform init
 
+      # --------------------------------------------------------
+      # Terraform Validate
+      # --------------------------------------------------------
       - name: Terraform Validate
         run: |
           terraform validate
 
+      # --------------------------------------------------------
+      # Terraform Plan
+      # --------------------------------------------------------
       - name: Terraform Plan
         run: |
           terraform plan -out=tfplan
 
+      # --------------------------------------------------------
+      # Terraform Apply
+      # --------------------------------------------------------
       - name: Terraform Apply
         run: |
           terraform apply -auto-approve tfplan
